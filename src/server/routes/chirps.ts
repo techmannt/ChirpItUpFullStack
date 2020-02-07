@@ -1,41 +1,69 @@
-import { Router } from 'express';
-import chirpstore from '../utils/chirpstore';
+import * as express from 'express';
+import db from '../db';
 
-const router = Router();
-router.get('/:id', (req, res) => {
+const router = express.Router();
+
+router.get('/:id', async (req, res) => {
+
+  try {
+    const id = req.params.id;
+    let [data] = await db.chirpCrud.one(id);
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json('There is an error!');
+  }
+})
+
+router.get('/', async (req, res) => {
+
+  try {
+    let data = await db.chirpCrud.all();
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json('There is an error!');
+  }
+
+});
+
+router.post('/', async (req, res) => {
+
+  try {
+    let chirpUsername = req.body.username;
+    let chirpMessage = req.body.message;
+    await db.chirpCrud.addOne(chirpUsername, chirpMessage);
+    res.json('Post successful!');
+  } catch (error) {
+    console.log(error);
+    res.status(500).json('There is an error!');
+  }
+
+});
+
+router.put('/:id', async (req, res) => {
   const id = req.params.id;
-  let chirp = chirpstore.GetChirp(id);
-  res.json(chirp);
+
+  try {
+    let chirpID = req.params.id;
+    let chirpMessage = req.body.message;
+    await db.chirpCrud.update(chirpMessage, chirpID);
+    res.json('Edited!');
+  } catch (error) {
+    console.log(error);
+    res.status(500).json('There is an error!');
+  }
 });
 
-router.get('/', (req, res) => {
-  let chirps = chirpstore.GetChirps();
-  let chirpsData = Object.keys(chirps).map(chirp => {
-    return {
-      id: chirp,
-      username: chirps[chirp].username,
-      message: chirps[chirp].message
-    }
-  });
-  chirpsData.pop();
-  res.json(chirpsData);
-});
-
-router.post('/', (req, res) => {
-  chirpstore.CreateChirp(req.body);
-  res.json('IT WORKED!');
-});
-
-router.put('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const id = req.params.id;
-  chirpstore.UpdateChirp(id, req.body);
-  res.json('Edited!');
-});
-
-router.delete('/:id', (req, res) => {
-  const id = req.params.id;
-  chirpstore.DeleteChirp(id);
-  res.json('deleted!');
+  try {
+    await db.chirpCrud.destroy(id);
+    res.json('Deleted!');
+  } catch (error) {
+    console.log(error);
+    res.status(500).json('There is an error!');
+  }
 });
 
 export default router;
