@@ -30,10 +30,10 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
 
   try {
-    let chirpUsername = req.body.username;
+    let chirpUsername = req.body.userid;
     let chirpMessage = req.body.message;
-    await db.chirpCrud.addOne(chirpUsername, chirpMessage);
-    res.json('Post successful!');
+    let result = await db.chirpCrud.addOne(chirpUsername, chirpMessage);
+    res.json(result);
   } catch (error) {
     console.log(error);
     res.status(500).json('There is an error!');

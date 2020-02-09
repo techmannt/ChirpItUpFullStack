@@ -8,16 +8,18 @@ class Home extends React.Component<IHomeProps, IHomeState> {
       loaded: false,
       chirpInfo: [],
       username: '',
-      message: ''
+      message: '',
+      selectedUserId: '0',
+      users: []
     };
   }
 
   async componentDidMount() {
-    let chirpData = await fetch('/api/chirps');
+    let chirpData = await fetch('/api/users');
     let chirpInfo = await chirpData.json();
     this.setState({
       loaded: true,
-      chirpInfo,
+      users: chirpInfo
     });
   }
 
@@ -25,7 +27,7 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     e.preventDefault();
 
     let newBody = {
-      username: this.state.username,
+      userid: this.state.users[Number(this.state.selectedUserId) - 1].userid,
       message: this.state.message
     };
     try {
@@ -55,6 +57,21 @@ class Home extends React.Component<IHomeProps, IHomeState> {
     this.setState({ message: e.target.value });
   }
 
+  handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    this.fetchUserChirps();
+  }
+
+  async fetchUserChirps() {
+    let chirpData = await fetch(`/api/users/${this.state.selectedUserId}`);
+    let chirpInfo = await chirpData.json();
+    let usernameSelected = Number(this.state.selectedUserId) - 1;
+    this.setState({
+      chirpInfo,
+      username: this.state.users[usernameSelected].username
+    });
+  }
+
   render() {
     if (this.state.loaded) {
       return (
@@ -62,7 +79,17 @@ class Home extends React.Component<IHomeProps, IHomeState> {
 
           <div className="row">
             <form className="col-12 form-group p-3 shadow">
-              <input className="form-control shadow" type="text" name="username" value={this.state.username} onChange={(event) => this.handleChirpUsernameChange(event)} placeholder="Enter your name" />
+              <label>Select a name:</label>
+              <select
+                value={this.state.selectedUserId}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.setState({ selectedUserId: e.target.value })}
+                className="form-control">
+                <option value="0">Select...</option>
+                {this.state.users.map(user => (
+                  <option key={user.userid} value={user.userid}>{user.username}</option>
+                ))}
+              </select>
+              <button onClick={this.handleClick} className="btn btn-primary mt-3">GO!</button>
               <input className="form-control shadow" type="text" name="message" value={this.state.message} onChange={(event) => this.handleChirpMessageChange(event)} placeholder="Enter chirp" />
               <button className="btn btn-primary" onClick={(e: React.MouseEvent<HTMLButtonElement>) => this.handleAdd(e)}>Submit it!</button>
             </form>
@@ -102,11 +129,20 @@ interface chirpObject {
   id: number;
 }
 
+interface IUsers {
+  userid: number;
+  username: string;
+  email: string;
+  created_at: Date;
+}
+
 export interface IHomeState {
   loaded: boolean;
   chirpInfo: chirpObject[];
   username: string;
   message: string;
+  selectedUserId: string;
+  users: IUsers[];
 }
 
 export default Home;

@@ -1,8 +1,9 @@
-// import { Router } from 'express';
-import * as express from 'express';
+import { Router } from 'express';
 import ChirpsRouter from './chirps';
+import usersRouter from './users';
 
-const router = express.Router();
+const router = Router();
 router.use('/chirps', ChirpsRouter);
+router.use('/users', usersRouter);
 
 export default router;
